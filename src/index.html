@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Valorant Nuzlocke Tracker</title>
+  <link rel="icon" type="image/jpeg" href="icon.jpeg">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button id="openThemeBtn" class="secondary small" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+  🎨 Theme
+</button>
+
+<div id="themeSidebar" class="theme-sidebar">
+  <h2>Theme</h2>
+
+  <label>Accent Color</label>
+  <input type="color" id="accentColorPicker">
+
+  <label>Card Background</label>
+  <input type="color" id="cardColorPicker">
+
+  <label>Main Background</label>
+  <input type="color" id="bgColorPicker">
+
+  <button id="resetColorsBtn" class="secondary small" style="margin-top:1rem;">
+    Reset
+  </button>
+
+  <div style="margin-top: 1rem; border-top: 1px solid rgba(148,163,184,0.1); padding-top: 1rem;">
+    <label for="scratchpad">Quick Notes</label>
+    <textarea id="scratchpad" placeholder="Type strategy, enemy habits, or buy plans here..." style="width:100%; height: 180px; margin-top: 0.5rem; background: var(--bg); color: #fff; border: 1px solid rgba(148,163,184,0.2); border-radius: 4px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;"></textarea>
+  </div>
+</div>
+
+
+<div id="editPanel" class="card hidden" style="margin-top: 1rem;">
+  <div class="card-header">
+    <h2>Edit Mode</h2>
+    <span class="tag">Admin Controls</span>
+  </div>
+
+  <p class="muted">Make changes carefully — this directly edits your save.</p>
+
+  <h3 style="margin-top: 1rem;">Agents</h3>
+  <div id="editAgents"></div>
+
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(148,163,184,0.3);">
+    <h3>Add New Agent</h3>
+    <div class="row">
+      <input type="text" id="newAgentName" placeholder="Agent Name" />
+      <button id="addAgentBtn" class="small">Add Agent</button>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 1rem;">Tokens</h3>
+  <input id="editTokens" type="number" min="0" style="width:100%;margin-top:0.4rem;" />
+
+  <h3 style="margin-top: 1rem;">Wins / Losses</h3>
+  <div class="row">
+    <input id="editWins" type="number" min="0" placeholder="Wins" />
+    <input id="editLosses" type="number" min="0" placeholder="Losses" />
+  </div>
+
+  <h3 style="margin-top: 1rem;">Weapon Bans</h3>
+  <div id="editWeaponBans"></div>
+
+  <h3 style="margin-top: 1rem;">Eco Bans</h3>
+  <div id="editEcoBans"></div>
+
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(148,163,184,0.3);">
+    <h3>Backup / Restore</h3>
+    <div class="row">
+      <button id="exportBtn" class="small">Export Data (JSON)</button>
+      <button id="importBtn" class="small">Import Data (JSON)</button>
+      <input type="file" id="importFile" class="hidden" accept=".json" />
+    </div>
+  </div>
+
+  <button id="saveEditsBtn" style="margin-top:1rem;">Save Changes</button>
+</div>
+   <div class="app">
+    <h1>
+      Valorant Nuzlocke Tracker
+      <span class="pill">Chaos but calculated</span>
+    </h1>
+    <button id="toggleEditBtn" class="secondary small" style="margin-bottom: 1rem;">
+  Edit Mode
+</button>
+
+    <p class="subtitle">
+      1 starting agent · each win unlocks 1 · 2 lives per agent · lose a match = lose 1 life.  
+      Eco deaths, bot frags & aces decide your fate.
+    </p>
+
+    <!-- Global Stats -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Run Overview</h2>
+        <button class="secondary small" id="undoBtn">Undo Last Match</button>
+        <button class="secondary small" id="resetRunBtn">Reset Full Run</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat-pill">
+          <span class="stat-label">Wins</span>
+          <span class="stat-value" id="winsCount">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Losses</span>
+          <span class="stat-value" id="lossesCount">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Tokens (from Aces)</span>
+          <span class="stat-value accent-text" id="tokensCount">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">Agents Alive</span>
+          <span class="stat-value" id="aliveAgentsCount">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top: 1rem;">
+      <!-- Left: Log Match -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Log Match</h2>
+          <span class="tag">Updates everything automatically</span>
+        </div>
+
+        <form id="matchForm">
+          <label for="agentSelect">Agent played</label>
+          <select id="agentSelect" required></select>
+
+          <label for="resultSelect">Result</label>
+          <select id="resultSelect" required>
+            <option value="win">Win</option>
+            <option value="loss">Loss</option>
+          </select>
+
+          <div class="row">
+            <div>
+              <label for="acesInput">Aces this match</label>
+              <input id="acesInput" type="number" min="0" value="0" />
+            </div>
+            <div>
+              <label for="botFragSelect">Bot frag happened?</label>
+              <select id="botFragSelect">
+                <option value="no">No</option>
+                <option value="yes">Yes (ban random weapon)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="ecoRoundCheck" />
+            <label for="ecoRoundCheck" style="margin: 0;">This match had an eco round where I died</label>
+          </div>
+
+          <div id="ecoDetails" class="eco-section hidden">
+            <div class="row">
+              <div>
+                <label for="ecoWeaponSelect">Eco weapon used</label>
+                <select id="ecoWeaponSelect"></select>
+              </div>
+              <div>
+                <label for="ecoKillsInput">Kills in that eco round</label>
+                <input id="ecoKillsInput" type="number" min="0" value="0" />
+              </div>
+            </div>
+            <p class="muted" style="margin-top: 0.25rem;">
+              If you died with <span class="accent-text">0 kills</span> in that eco, that weapon is banned for this session.
+            </p>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="friendshipCheck" />
+            <label for="friendshipCheck" style="margin: 0;">
+              I equipped an accessory of this agent (Friendship Rule)
+            </label>
+          </div>
+
+          <button type="submit">
+            <span>Log Match</span> <span>➜</span>
+          </button>
+        </form>
+
+        <button id="newSessionBtn" class="secondary small" style="margin-top: 0.6rem;">
+          New Session (clear bans only)
+        </button>
+      </div>
+
+      <!-- Right: Bans & Tokens -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <h3>Eco Bans (this session)</h3>
+            <span class="tag">Eco Rule</span>
+          </div>
+          <div id="ecoBansContainer">
+            <p class="muted">No eco weapons banned yet. Don’t throw 🙂</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Weapon Bans (Bot Frags)</h3>
+            <span class="tag">Bot Frag Rule</span>
+          </div>
+          <div id="weaponBansContainer">
+            <p class="muted">No weapons banned from bot frags yet. Stay sharp.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Tokens Usage</h3>
+            <span class="tag">Aces ➜ Tokens</span>
+          </div>
+          <p class="muted">
+            Each <span class="accent-text">ace</span> = 1 token. You can spend a token to save an agent
+            (revive with 1 life).
+          </p>
+          <p class="muted">
+            Use the <strong>“Save with Token”</strong> button in the Agents list below when someone hits 0 lives.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agents & History -->
+    <div class="grid" style="margin-top: 1rem;">
+      <div class="card">
+        <div class="card-header">
+          <h2>Agents & Lives</h2>
+          <span class="tag">Start with 1 agent, win to unlock more</span>
+        </div>
+        <div class="chips" id="agentLegend">
+          <span class="chip">❤️ = 1 life · each agent has 2</span>
+          <span class="chip">0 lives = perma dead (unless saved)</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Lives</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="agentsTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Match History</h2>
+          <span class="tag">Last few matches</span>
+        </div>
+        <div class="history" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
