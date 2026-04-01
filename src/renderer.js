@@ -691,8 +691,11 @@ document.getElementById("addWeaponBtn").addEventListener("click", () => {
 const sidebar = document.getElementById("themeSidebar");
 const openThemeBtn = document.getElementById("openThemeBtn");
 const accentPicker = document.getElementById("accentColorPicker");
+const accentHex = document.getElementById("accentHexInput");
 const cardPicker = document.getElementById("cardColorPicker");
+const cardHex = document.getElementById("cardHexInput");
 const bgPicker = document.getElementById("bgColorPicker");
+const bgHex = document.getElementById("bgHexInput");
 const resetColorsBtn = document.getElementById("resetColorsBtn");
 
 const THEME_STORAGE = "valo_nuzlocke_theme_v1";
@@ -717,8 +720,11 @@ function applyTheme(theme) {
   root.style.setProperty("--accent-soft", hexToHexAlpha(theme.accent, 0.1));
   // sync pickers
   if (accentPicker) accentPicker.value = theme.accent;
+  if (accentHex) accentHex.value = theme.accent.toUpperCase();
   if (cardPicker) cardPicker.value = theme.card;
+  if (cardHex) cardHex.value = theme.card.toUpperCase();
   if (bgPicker) bgPicker.value = theme.bg;
+  if (bgHex) bgHex.value = theme.bg.toUpperCase();
 }
 
 function saveTheme(theme) {
@@ -756,12 +762,27 @@ document.addEventListener("click", (e) => {
   }
 });
 
+const isValidHex = (hex) => /^#[0-9A-Fa-f]{6}$/.test(hex);
+
 if (accentPicker) {
   accentPicker.addEventListener("input", (e) => {
     const v = e.target.value;
     root.style.setProperty("--accent", v);
     root.style.setProperty("--accent-soft", hexToHexAlpha(v, 0.1));
+    if (accentHex) accentHex.value = v.toUpperCase();
     saveTheme({ accent: v, card: cardPicker.value, bg: bgPicker.value });
+  });
+}
+if (accentHex) {
+  accentHex.addEventListener("input", (e) => {
+    let v = e.target.value.trim();
+    if (!v.startsWith('#')) v = '#' + v;
+    if (isValidHex(v)) {
+      root.style.setProperty("--accent", v);
+      root.style.setProperty("--accent-soft", hexToHexAlpha(v, 0.1));
+      if (accentPicker) accentPicker.value = v;
+      saveTheme({ accent: v, card: cardPicker.value, bg: bgPicker.value });
+    }
   });
 }
 
@@ -769,7 +790,19 @@ if (cardPicker) {
   cardPicker.addEventListener("input", (e) => {
     const v = e.target.value;
     root.style.setProperty("--card", v);
+    if (cardHex) cardHex.value = v.toUpperCase();
     saveTheme({ accent: accentPicker.value, card: v, bg: bgPicker.value });
+  });
+}
+if (cardHex) {
+  cardHex.addEventListener("input", (e) => {
+    let v = e.target.value.trim();
+    if (!v.startsWith('#')) v = '#' + v;
+    if (isValidHex(v)) {
+      root.style.setProperty("--card", v);
+      if (cardPicker) cardPicker.value = v;
+      saveTheme({ accent: accentPicker.value, card: v, bg: bgPicker.value });
+    }
   });
 }
 
@@ -777,7 +810,19 @@ if (bgPicker) {
   bgPicker.addEventListener("input", (e) => {
     const v = e.target.value;
     root.style.setProperty("--bg", v);
+    if (bgHex) bgHex.value = v.toUpperCase();
     saveTheme({ accent: accentPicker.value, card: cardPicker.value, bg: v });
+  });
+}
+if (bgHex) {
+  bgHex.addEventListener("input", (e) => {
+    let v = e.target.value.trim();
+    if (!v.startsWith('#')) v = '#' + v;
+    if (isValidHex(v)) {
+      root.style.setProperty("--bg", v);
+      if (bgPicker) bgPicker.value = v;
+      saveTheme({ accent: accentPicker.value, card: cardPicker.value, bg: v });
+    }
   });
 }
 

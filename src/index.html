@@ -19,15 +19,24 @@
   <h2>Misc</h2>
 
   <label>Accent Color</label>
-  <input type="color" id="accentColorPicker">
+  <div class="row" style="margin-top:0.3rem;">
+    <input type="text" id="accentHexInput" placeholder="#RRGGBB" style="text-transform:uppercase; font-family:monospace;" />
+    <input type="color" id="accentColorPicker" style="width:40px; height:33px; border:none; padding:0; background:transparent; cursor:pointer;" />
+  </div>
 
-  <label>Card Background</label>
-  <input type="color" id="cardColorPicker">
+  <label style="margin-top:0.7rem;">Card Background</label>
+  <div class="row" style="margin-top:0.3rem;">
+    <input type="text" id="cardHexInput" placeholder="#RRGGBB" style="text-transform:uppercase; font-family:monospace;" />
+    <input type="color" id="cardColorPicker" style="width:40px; height:33px; border:none; padding:0; background:transparent; cursor:pointer;" />
+  </div>
 
-  <label>Main Background</label>
-  <input type="color" id="bgColorPicker">
+  <label style="margin-top:0.7rem;">Main Background</label>
+  <div class="row" style="margin-top:0.3rem;">
+    <input type="text" id="bgHexInput" placeholder="#RRGGBB" style="text-transform:uppercase; font-family:monospace;" />
+    <input type="color" id="bgColorPicker" style="width:40px; height:33px; border:none; padding:0; background:transparent; cursor:pointer;" />
+  </div>
 
-  <button id="resetColorsBtn" class="secondary small" style="margin-top:1rem;">
+  <button id="resetColorsBtn" class="secondary small" style="margin-top:1.5rem;">
     Reset
   </button>
 
