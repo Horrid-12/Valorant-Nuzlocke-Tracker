@@ -668,6 +668,26 @@ document.getElementById("addAgentBtn").addEventListener("click", () => {
   alert(`Added ${name} to the pool.`);
 });
 
+// Dynamic Weapon Addition
+document.getElementById("addWeaponBtn").addEventListener("click", () => {
+  const nameInput = document.getElementById("newWeaponName");
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  if (state.weapons.find(w => w.toLowerCase() === name.toLowerCase())) {
+    alert("Weapon already exists.");
+    return;
+  }
+
+  state.weapons.push(name);
+  addHistoryEntry(`Admin: Added new weapon to pool: ${name}`);
+  saveState();
+  renderEditPanel();
+  renderSelectors();
+  nameInput.value = "";
+  alert(`Added ${name} to the pool.`);
+});
+
 const sidebar = document.getElementById("themeSidebar");
 const openThemeBtn = document.getElementById("openThemeBtn");
 const accentPicker = document.getElementById("accentColorPicker");
@@ -679,17 +699,14 @@ const THEME_STORAGE = "valo_nuzlocke_theme_v1";
 const DEFAULT_COLORS = { accent: "#f97316", card: "#0f172a", bg: "#050816" };
 const root = document.documentElement;
 
-function hexToRgba(hex, alpha = 1) {
+function hexToHexAlpha(hex, alpha = 1) {
   // Accepts #rrggbb or #rgb
   let h = hex.replace("#", "");
   if (h.length === 3) {
     h = h.split("").map(c => c + c).join("");
   }
-  const bigint = parseInt(h, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const a = Math.round(alpha * 255).toString(16).padStart(2, "0");
+  return `#${h}${a}`;
 }
 
 function applyTheme(theme) {
@@ -697,7 +714,7 @@ function applyTheme(theme) {
   root.style.setProperty("--accent", theme.accent);
   root.style.setProperty("--card", theme.card);
   root.style.setProperty("--bg", theme.bg);
-  root.style.setProperty("--accent-soft", hexToRgba(theme.accent, 0.1));
+  root.style.setProperty("--accent-soft", hexToHexAlpha(theme.accent, 0.1));
   // sync pickers
   if (accentPicker) accentPicker.value = theme.accent;
   if (cardPicker) cardPicker.value = theme.card;
@@ -743,7 +760,7 @@ if (accentPicker) {
   accentPicker.addEventListener("input", (e) => {
     const v = e.target.value;
     root.style.setProperty("--accent", v);
-    root.style.setProperty("--accent-soft", hexToRgba(v, 0.1));
+    root.style.setProperty("--accent-soft", hexToHexAlpha(v, 0.1));
     saveTheme({ accent: v, card: cardPicker.value, bg: bgPicker.value });
   });
 }

@@ -12,11 +12,11 @@
 <body>
 
 <button id="openThemeBtn" class="secondary small" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
-  🎨 Theme
+  ⚙ Misc
 </button>
 
 <div id="themeSidebar" class="theme-sidebar">
-  <h2>Theme</h2>
+  <h2>Misc</h2>
 
   <label>Accent Color</label>
   <input type="color" id="accentColorPicker">
@@ -31,9 +31,9 @@
     Reset
   </button>
 
-  <div style="margin-top: 1rem; border-top: 1px solid rgba(148,163,184,0.1); padding-top: 1rem;">
+  <div style="margin-top: 1rem; border-top: 1px solid #94a3b81a; padding-top: 1rem;">
     <label for="scratchpad">Quick Notes</label>
-    <textarea id="scratchpad" placeholder="Type strategy, enemy habits, or buy plans here..." style="width:100%; height: 180px; margin-top: 0.5rem; background: var(--bg); color: #fff; border: 1px solid rgba(148,163,184,0.2); border-radius: 4px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;"></textarea>
+    <textarea id="scratchpad" placeholder="Type strategy, enemy habits, or buy plans here..." style="width:100%; height: 180px; margin-top: 0.5rem; background: var(--bg); color: #fff; border: 1px solid #94a3b833; border-radius: 4px; padding: 0.5rem; font-family: inherit; font-size: 0.85rem; resize: vertical;"></textarea>
   </div>
 </div>
 
@@ -49,11 +49,19 @@
   <h3 style="margin-top: 1rem;">Agents</h3>
   <div id="editAgents"></div>
 
-  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(148,163,184,0.3);">
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #94a3b84d;">
     <h3>Add New Agent</h3>
     <div class="row">
       <input type="text" id="newAgentName" placeholder="Agent Name" />
       <button id="addAgentBtn" class="small">Add Agent</button>
+    </div>
+  </div>
+
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #94a3b84d;">
+    <h3>Add New Weapon</h3>
+    <div class="row">
+      <input type="text" id="newWeaponName" placeholder="Weapon Name" />
+      <button id="addWeaponBtn" class="small">Add Weapon</button>
     </div>
   </div>
 
@@ -72,7 +80,7 @@
   <h3 style="margin-top: 1rem;">Eco Bans</h3>
   <div id="editEcoBans"></div>
 
-  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(148,163,184,0.3);">
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #94a3b84d;">
     <h3>Backup / Restore</h3>
     <div class="row">
       <button id="exportBtn" class="small">Export Data (JSON)</button>
@@ -269,4 +277,4 @@
 
   <script src="renderer.js"></script>
 </body>
-</html>
+</html>```
