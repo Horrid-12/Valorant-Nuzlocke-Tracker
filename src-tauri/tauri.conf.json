@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Nuztrack",
   "version": "1.0.0",
-  "identifier": "com.howwid.nuztrack",
+  "identifier": "com.horrid12.nuztrack",
   "build": {
     "frontendDist": "../src"
   },
