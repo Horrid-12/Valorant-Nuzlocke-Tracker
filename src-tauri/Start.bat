@@ -1,0 +1,1 @@
+npx @tauri-apps/cli dev

@@ -1,14 +1,14 @@
 {
   "name": "nuztrack",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "release:all": "powershell -ExecutionPolicy Bypass -File ./publish.ps1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
   }
 }
-

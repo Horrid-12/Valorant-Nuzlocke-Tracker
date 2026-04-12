@@ -712,24 +712,79 @@ function hexToHexAlpha(hex, alpha = 1) {
   return `#${h}${a}`;
 }
 
+function normalizeHexColor(value, fallback) {
+  if (typeof value !== "string") return fallback;
+
+  const trimmed = value.trim();
+
+  if (/^#[0-9A-Fa-f]{3}$/.test(trimmed)) {
+    const expanded = trimmed
+      .slice(1)
+      .split("")
+      .map(char => char + char)
+      .join("");
+    return `#${expanded.toLowerCase()}`;
+  }
+
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+
+  if (/^#[0-9A-Fa-f]{8}$/.test(trimmed)) {
+    return trimmed.slice(0, 7).toLowerCase();
+  }
+
+  const rgbMatch = trimmed.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbMatch) {
+    const parts = rgbMatch[1]
+      .split(",")
+      .slice(0, 3)
+      .map(part => Number.parseInt(part.trim(), 10));
+
+    if (parts.length === 3 && parts.every(part => Number.isInteger(part) && part >= 0 && part <= 255)) {
+      const hex = parts
+        .map(part => part.toString(16).padStart(2, "0"))
+        .join("");
+      return `#${hex}`;
+    }
+  }
+
+  return fallback;
+}
+
 function applyTheme(theme) {
   if (!theme) return;
-  root.style.setProperty("--accent", theme.accent);
-  root.style.setProperty("--card", theme.card);
-  root.style.setProperty("--bg", theme.bg);
-  root.style.setProperty("--accent-soft", hexToHexAlpha(theme.accent, 0.1));
+
+  const normalizedTheme = {
+    accent: normalizeHexColor(theme.accent, DEFAULT_COLORS.accent),
+    card: normalizeHexColor(theme.card, DEFAULT_COLORS.card),
+    bg: normalizeHexColor(theme.bg, DEFAULT_COLORS.bg)
+  };
+
+  root.style.setProperty("--accent", normalizedTheme.accent);
+  root.style.setProperty("--card", normalizedTheme.card);
+  root.style.setProperty("--bg", normalizedTheme.bg);
+  root.style.setProperty("--accent-soft", hexToHexAlpha(normalizedTheme.accent, 0.1));
   // sync pickers
-  if (accentPicker) accentPicker.value = theme.accent;
-  if (accentHex) accentHex.value = theme.accent.toUpperCase();
-  if (cardPicker) cardPicker.value = theme.card;
-  if (cardHex) cardHex.value = theme.card.toUpperCase();
-  if (bgPicker) bgPicker.value = theme.bg;
-  if (bgHex) bgHex.value = theme.bg.toUpperCase();
+  if (accentPicker) accentPicker.value = normalizedTheme.accent;
+  if (accentHex) accentHex.value = normalizedTheme.accent.toUpperCase();
+  if (cardPicker) cardPicker.value = normalizedTheme.card;
+  if (cardHex) cardHex.value = normalizedTheme.card.toUpperCase();
+  if (bgPicker) bgPicker.value = normalizedTheme.bg;
+  if (bgHex) bgHex.value = normalizedTheme.bg.toUpperCase();
+
+  return normalizedTheme;
 }
 
 function saveTheme(theme) {
   try {
-    localStorage.setItem(THEME_STORAGE, JSON.stringify(theme));
+    const normalizedTheme = {
+      accent: normalizeHexColor(theme.accent, DEFAULT_COLORS.accent),
+      card: normalizeHexColor(theme.card, DEFAULT_COLORS.card),
+      bg: normalizeHexColor(theme.bg, DEFAULT_COLORS.bg)
+    };
+
+    localStorage.setItem(THEME_STORAGE, JSON.stringify(normalizedTheme));
   } catch (e) {
     console.error("Failed to save theme:", e);
   }
@@ -739,8 +794,8 @@ function loadTheme() {
   try {
     const saved = localStorage.getItem(THEME_STORAGE);
     if (saved) {
-      const t = JSON.parse(saved);
-      applyTheme(t);
+      const normalizedTheme = applyTheme(JSON.parse(saved));
+      saveTheme(normalizedTheme);
       return;
     }
   } catch (e) {
