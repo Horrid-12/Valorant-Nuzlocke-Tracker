@@ -5,6 +5,9 @@ param(
     [switch]$InstallDeps,
     [switch]$BuildDesktop,
     [switch]$BuildAndroid,
+    [switch]$AndroidSplitPerAbi,
+    [ValidateSet("aarch64", "armv7", "i686", "x86_64")]
+    [string[]]$AndroidTargets = @("aarch64"),
     [ValidateSet("debug", "release")]
     [string]$AndroidProfile = "debug",
     [switch]$AndroidApk,
@@ -96,7 +99,7 @@ function Update-CargoTomlPackageVersion {
     Set-Content -LiteralPath $FilePath -Value $lines
 }
 
-function Update-TauriAndroidPropertiesVersion {
+function Update-CapacitorAndroidVersion {
     param(
         [string]$FilePath,
         [string]$NewVersion,
@@ -108,8 +111,8 @@ function Update-TauriAndroidPropertiesVersion {
     }
 
     $content = Get-Content -LiteralPath $FilePath -Raw
-    $content = [regex]::Replace($content, '(?m)^tauri\.android\.versionName=.*$', ('tauri.android.versionName=' + $NewVersion))
-    $content = [regex]::Replace($content, '(?m)^tauri\.android\.versionCode=.*$', ('tauri.android.versionCode=' + $NewVersionCode))
+    $content = [regex]::Replace($content, '(?m)^\s*versionCode\s+\d+\s*$', "        versionCode $NewVersionCode")
+    $content = [regex]::Replace($content, '(?m)^\s*versionName\s+"[^"]+"\s*$', "        versionName `"$NewVersion`"")
     Set-Content -LiteralPath $FilePath -Value $content -NoNewline
 }
 
@@ -132,7 +135,7 @@ function Set-ProjectVersion {
     Update-JsonVersion (Join-Path $RepoRoot "package-lock.json") $NewVersion
     Update-JsonVersion (Join-Path $RepoRoot "src-tauri\tauri.conf.json") $NewVersion
     Update-CargoTomlPackageVersion (Join-Path $RepoRoot "src-tauri\Cargo.toml") $NewVersion
-    Update-TauriAndroidPropertiesVersion (Join-Path $RepoRoot "src-tauri\gen\android\app\tauri.properties") $NewVersion $resolvedAndroidCode
+    Update-CapacitorAndroidVersion (Join-Path $RepoRoot "android\app\build.gradle") $NewVersion $resolvedAndroidCode
 
     Write-Host "Updated version to $NewVersion (Android versionCode: $resolvedAndroidCode)" -ForegroundColor Green
 }
@@ -247,15 +250,11 @@ function Ensure-AndroidEnvironment {
     if (-not $env:ANDROID_HOME) {
         $env:ANDROID_HOME = $AndroidSdkRoot
     }
-    if (-not $env:NDK_HOME) {
-        $env:NDK_HOME = $DefaultNdkHome
-    }
 
     Ensure-PathExists $env:JAVA_HOME "JAVA_HOME"
     Ensure-PathExists $env:ANDROID_HOME "ANDROID_HOME"
-    Ensure-PathExists $env:NDK_HOME "NDK_HOME"
     Ensure-PathExists (Join-Path $env:ANDROID_HOME "platform-tools") "Android platform-tools"
-    Ensure-PathExists (Join-Path $RepoRoot "src-tauri\gen\android\gradlew.bat") "Generated Android project"
+    Ensure-PathExists (Join-Path $RepoRoot "android\gradlew.bat") "Generated Android project"
 }
 
 function Get-DesktopArtifacts {
@@ -269,7 +268,7 @@ function Get-DesktopArtifacts {
 }
 
 function Get-AndroidArtifacts {
-    $outputsRoot = Join-Path $RepoRoot "src-tauri\gen\android\app\build\outputs"
+    $outputsRoot = Join-Path $RepoRoot "android\app\build\outputs"
     if (-not (Test-Path -LiteralPath $outputsRoot)) {
         return @()
     }
@@ -307,7 +306,7 @@ function Start-InteractiveMode {
 
     $script:InstallDeps = Read-Choice "Run npm install first?" $false
     $script:BuildDesktop = Read-Choice "Build the Tauri desktop release?" $true
-    $script:BuildAndroid = Read-Choice "Build the Tauri Android app?" $true
+    $script:BuildAndroid = Read-Choice "Build the Capacitor Android app?" $true
 
     if ($script:BuildAndroid) {
         $script:AndroidProfile = Read-Option "Android build profile" "debug" @("debug", "release")
@@ -391,27 +390,19 @@ try {
             Ensure-AndroidEnvironment
             Write-Host "JAVA_HOME    : $env:JAVA_HOME"
             Write-Host "ANDROID_HOME : $env:ANDROID_HOME"
-            Write-Host "NDK_HOME     : $env:NDK_HOME"
         }
 
-        Invoke-Step "Building Android artifacts" {
-            $androidArgs = @("tauri", "android", "build")
+        Invoke-Step "Syncing Capacitor assets to Android" {
+            Invoke-External "npx.cmd" @("cap", "sync", "android")
+        }
 
-            if ($AndroidProfile -eq "debug") {
-                $androidArgs += "--debug"
+        Invoke-Step "Building Android artifacts via Gradle" {
+            $gradleTask = if ($AndroidAab) {
+                if ($AndroidProfile -eq "debug") { "bundleDebug" } else { "bundleRelease" }
+            } else {
+                if ($AndroidProfile -eq "debug") { "assembleDebug" } else { "assembleRelease" }
             }
-
-            if ($AndroidApk) {
-                $androidArgs += "--apk"
-            }
-
-            if ($AndroidAab) {
-                $androidArgs += "--aab"
-            }
-
-            $androidArgs += "--ci"
-
-            Invoke-External "npx.cmd" $androidArgs
+            Invoke-External (Join-Path $RepoRoot "android\gradlew.bat") @($gradleTask) -WorkingDirectory (Join-Path $RepoRoot "android")
         }
     }
 

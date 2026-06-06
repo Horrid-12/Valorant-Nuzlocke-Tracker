@@ -12,5 +12,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+opt-level = "z"
+
 [dependencies]
 tauri = { version = "2", features = [] }

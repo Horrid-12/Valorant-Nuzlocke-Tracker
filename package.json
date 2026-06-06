@@ -9,6 +9,12 @@
     "release:all": "powershell -ExecutionPolicy Bypass -File ./publish.ps1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
   }
 }
