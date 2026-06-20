@@ -212,10 +212,13 @@ function renderBans() {
 
 function renderHistory() {
   const historyDiv = document.getElementById("historyList");
-  historyDiv.innerHTML = "";
+  historyDiv.textContent = "";
 
   if (state.history.length === 0) {
-    historyDiv.innerHTML = "<p class='muted'>No matches logged yet.</p>";
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "No matches logged yet.";
+    historyDiv.appendChild(p);
     return;
   }
 
@@ -224,10 +227,16 @@ function renderHistory() {
   recent.forEach(entry => {
     const div = document.createElement("div");
     div.className = "history-item";
-    div.innerHTML = `
-      <div>${entry.summary}</div>
-      <div class="muted">${entry.time}</div>
-    `;
+
+    const summaryDiv = document.createElement("div");
+    summaryDiv.textContent = entry.summary;
+    div.appendChild(summaryDiv);
+
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "muted";
+    timeDiv.textContent = entry.time;
+    div.appendChild(timeDiv);
+
     historyDiv.appendChild(div);
   });
 }
@@ -349,17 +358,42 @@ function importData(e) {
   reader.onload = (event) => {
     try {
       const imported = JSON.parse(event.target.result);
-      // Basic validation
+
       if (!imported.agents || !Array.isArray(imported.agents)) {
         throw new Error("Invalid save format: missing agents array.");
       }
-      
+
+      const validAgents = imported.agents.map(a => ({
+        id: Number.isInteger(a.id) ? a.id : 0,
+        name: typeof a.name === "string" ? a.name : "Unknown",
+        unlocked: !!a.unlocked,
+        lives: Math.max(0, Math.min(2, parseInt(a.lives, 10) || 0)),
+        dead: !!a.dead
+      }));
+
       if (!confirm("Importing data will OVERWRITE your current run. Continue?")) {
         return;
       }
 
-      state = imported;
-      saveState(true); // Save for undo just in case
+      state = {
+        agents: validAgents,
+        wins: Math.max(0, parseInt(imported.wins, 10) || 0),
+        losses: Math.max(0, parseInt(imported.losses, 10) || 0),
+        tokens: Math.max(0, parseInt(imported.tokens, 10) || 0),
+        weapons: Array.isArray(imported.weapons)
+          ? imported.weapons.filter(w => typeof w === "string")
+          : defaultWeapons,
+        ecoBans: Array.isArray(imported.ecoBans)
+          ? imported.ecoBans.filter(b => typeof b === "string")
+          : [],
+        weaponBans: Array.isArray(imported.weaponBans)
+          ? imported.weaponBans.filter(b => typeof b === "string")
+          : [],
+        history: Array.isArray(imported.history) ? imported.history.slice(-100) : [],
+        notes: typeof imported.notes === "string" ? imported.notes : ""
+      };
+
+      saveState(true);
       render();
       addHistoryEntry("Action: Imported run data from file.");
       alert("Import successful!");
@@ -367,7 +401,6 @@ function importData(e) {
       console.error("Import failed:", err);
       alert("Failed to import: " + err.message);
     }
-    // Reset input
     e.target.value = "";
   };
   reader.readAsText(file);

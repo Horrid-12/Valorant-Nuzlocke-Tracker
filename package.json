@@ -1,6 +1,6 @@
 {
   "name": "nuztrack",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "tauri dev",
@@ -11,10 +11,5 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@tauri-apps/cli": "^2"
-  },
-  "dependencies": {
-    "@capacitor/android": "^8.4.0",
-    "@capacitor/cli": "^8.4.0",
-    "@capacitor/core": "^8.4.0"
   }
 }
